@@ -19,6 +19,12 @@ module.exports = function(app, passport){
     res.render('signup.ejs', {message: req.flash('signupMessage')});
   });
   
+  //process the signup form
+  app.post('/signup', passport.authenticate('local-signup', {
+    successRedirect: '/profile',
+    failureRedirect: '/signup',
+    failureFlash: true
+  }));
   /*Profile is accessible only if the user is loggedin; we'll use route middleware to verify this - the isLoggedIn function*/
   app.get('/profile', isLoggedIn, function(req, res){
     
