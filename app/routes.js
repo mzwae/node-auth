@@ -25,6 +25,13 @@ module.exports = function(app, passport){
     failureRedirect: '/signup',
     failureFlash: true
   }));
+  
+  //process the login form
+  app.post('/login', passport.authenticate('local-login', {
+    successRedirect: '/profile', //redirect to the secure profile section
+    failureRedirect: '/login', // redirect back to the signup page if no error
+    failureFlash: true // allow flash messages
+  }));
   /*Profile is accessible only if the user is loggedin; we'll use route middleware to verify this - the isLoggedIn function*/
   app.get('/profile', isLoggedIn, function(req, res){
     

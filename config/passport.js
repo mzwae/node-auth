@@ -71,4 +71,38 @@ module.exports = function (passport) {
       }
     ));
 
+
+
+
+  //Local login
+  passport.use('local-login', new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password',
+    passReqToCallback: true //allows us to pass back the entire request to the callback
+  }, function (req, email, password, done) {
+    User.findOne({
+      'local.email': email
+    }, function (err, user) {
+      //if there are any errors, return the error before anything else
+      if (err) {
+        return done(err);
+      }
+
+      //if no user is found, return the message
+      if (!user) {
+        //req.flash is the way to set flash data using connect-flash
+        return done(null, false, req.flash('loginMessage', 'No user found.'));
+      }
+
+      //if the user is found but the password is wrong
+      if (!user.validPassword(password)) {
+        //create the login message and save to session as flash data
+        return done(null, false, req.failureFlash('loginMessage', 'Oops! Wrong password.'));
+      }
+
+      //if all is well, return successful user
+      return done(null, user);
+    });
+  }));
+
 };
