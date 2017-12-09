@@ -2,6 +2,7 @@
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
 var TwitterStrategy = require('passport-twitter').Strategy;
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 
 //load up the user model
@@ -142,8 +143,6 @@ module.exports = function (passport) {
             var newUser = new User();
 
             //set all of the facebook information in our user model
-            console.log("profile is: ", profile);
-            console.log('-------------------------end of profile');
             newUser.facebook.id = profile.id;
             newUser.facebook.token = token;
             //        newUser.facebook.name = profile.name.givenName + ' ' + profile.name.familyName;
@@ -189,15 +188,13 @@ module.exports = function (passport) {
           // if there is no user, create them
           var newUser = new User();
 
-          console.log('********************************');
-          console.log('twitter profile object:', profile.username);
           //set all of the user data that we need
           newUser.twitter.id = profile.id;
           newUser.twitter.token = token;
           newUser.twitter.username = profile.username;
           newUser.twitter.displayName = profile.displayName;
           console.log('newUser.twitter', newUser.twitter);
-          
+
           //save our user into the database
           newUser.save(function (err) {
             if (err) {
@@ -208,5 +205,55 @@ module.exports = function (passport) {
         }
       });
     });
+  }));
+
+
+  /************************************************************/
+  /*GOOGLE STRATEGY*/
+  /***********************************************************/
+
+  passport.use(new GoogleStrategy({
+    clientID: configAuth.googleAuth.clientID,
+    clientSecret: configAuth.googleAuth.clientSecret,
+    callbackURL: configAuth.googleAuth.callbackURL
+  }, function (token, refreshToken, profile, done) {
+    //make the code asynchronous
+    //User.finOne won't fire until we have all our data back from Google
+    process.nextTick(function () {
+
+      //try to find the user based on their goole id
+      User.findOne({
+        'google.id': profile.id
+      }, function (err, user) {
+        if (err) {
+          return done(err);
+        }
+
+        if (user) {
+          //if a user is found, log them in 
+          return done(null, user);
+        } else {
+          //if the user isn't in our database, create a new user 
+          var newUser = new User();
+
+          //set all of the relevant information
+          newUser.google.id = profile.id;
+          newUser.google.token = token;
+          newUser.google.name = profile.displayName;
+          newUser.google.email = profile.emails[0].value; //pull the first email
+
+          // save the user to the database
+          newUser.save(function (err) {
+            if (err) {
+              throw err;
+
+            }
+            return done(null, newUser);
+          });
+        }
+      });
+    });
+
+
   }));
 };

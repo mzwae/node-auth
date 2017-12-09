@@ -12,8 +12,8 @@ module.exports = {
     'callbackURL': 'http://localhost:3000/auth/twitter/callback'
   },
   'googleAuth': {
-    'clientID': 'mySecretClientID',
-    'clientSecret': 'myClientSecret',
+    'clientID': process.env.googleCI,
+    'clientSecret': process.env.googleCS,
     'callbackURL': 'http://localhost:3000/auth/google/callback'
   }
 };
