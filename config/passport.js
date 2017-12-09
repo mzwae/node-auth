@@ -1,6 +1,8 @@
 //load all the things we need
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
+var TwitterStrategy = require('passport-twitter').Strategy;
+
 
 //load up the user model
 var User = require('../app/models/user');
@@ -23,8 +25,10 @@ module.exports = function (passport) {
     });
   });
 
-  /*LOCAL STRATEGY*/
 
+  /************************************************************/
+  /*LOCAL STRATEGY*/
+  /***********************************************************/
   //Local signup
   passport.use('local-signup', new LocalStrategy({
     usernameField: 'email',
@@ -108,86 +112,101 @@ module.exports = function (passport) {
         return done(null, user);
       });
     }));
-  
-  
+
+
   /************************************************************/
   /*FACEBOOK STRATEGY*/
   /***********************************************************/
-passport.use(new FacebookStrategy({
-    clientID: configAuth.facebookAuth.clientID,
-    clientSecret: configAuth.facebookAuth.clientSecret,
-    callbackURL: configAuth.facebookAuth.callbackURL
-  },
-  function (token, refreshToken, profile, done) {
-  //asynchronous
-  process.nextTick(function(){
-    //find the user in the database based on their id
-    User.findOne({'facebook.id': profile.id}, function(err, user){
-      //if there is an error, stop everything and return
-      if(err){
-        return done(err);
-      }
-      
-      //if the user is found, then log them in
-      if (user){
-        return done(null, user);//user found, return that user
-      } else {
-        //if no user already signed up, create a new user
-        var newUser = new User();
-        
-        //set all of the facebook information in our user model
-        console.log("profile is: ", profile);
-        console.log('-------------------------end of profile');
-        newUser.facebook.id = profile.id;
-        newUser.facebook.token = token;
-//        newUser.facebook.name = profile.name.givenName + ' ' + profile.name.familyName;
-        newUser.facebook.name = profile.displayName;
-//        newUser.facebook.email = profile.emails[0].value || null;
-        
-        //save our user to the databse
-        newUser.save(function(err){
-          if(err){
-            throw err;
+  passport.use(new FacebookStrategy({
+      clientID: configAuth.facebookAuth.clientID,
+      clientSecret: configAuth.facebookAuth.clientSecret,
+      callbackURL: configAuth.facebookAuth.callbackURL
+    },
+    function (token, refreshToken, profile, done) {
+      //asynchronous
+      process.nextTick(function () {
+        //find the user in the database based on their id
+        User.findOne({
+          'facebook.id': profile.id
+        }, function (err, user) {
+          //if there is an error, stop everything and return
+          if (err) {
+            return done(err);
           }
-          //if no errors, return the new user
-          return done(null, newUser);
+
+          //if the user is found, then log them in
+          if (user) {
+            return done(null, user); //user found, return that user
+          } else {
+            //if no user already signed up, create a new user
+            var newUser = new User();
+
+            //set all of the facebook information in our user model
+            console.log("profile is: ", profile);
+            console.log('-------------------------end of profile');
+            newUser.facebook.id = profile.id;
+            newUser.facebook.token = token;
+            //        newUser.facebook.name = profile.name.givenName + ' ' + profile.name.familyName;
+            newUser.facebook.name = profile.displayName;
+            //        newUser.facebook.email = profile.emails[0].value || null;
+
+            //save our user to the databse
+            newUser.save(function (err) {
+              if (err) {
+                throw err;
+              }
+              //if no errors, return the new user
+              return done(null, newUser);
+            });
+          }
         });
-      }
+      });
+    }));
+
+  /************************************************************/
+  /*TWITTER STRATEGY*/
+  /***********************************************************/
+  passport.use(new TwitterStrategy({
+    consumerKey: configAuth.twitterAuth.consumerKey,
+    consumerSecret: configAuth.twitterAuth.consumerSecret,
+    callbackURL: configAuth.twitterAuth.callbackURL
+  }, function (token, tokenSecret, profile, done) {
+    // make the code asynchronous
+    //User.findOne won't fire until we have all our data back from Twitter
+    process.nextTick(function () {
+      User.findOne({
+        'twitter.id': profile.id
+      }, function (err, user) {
+        //if there is an error, stop everything and return
+        if (err) {
+          return done(err);
+        }
+
+        // if the user is found then log them in 
+        if (user) {
+          return done(null, user); //user found, return that user
+        } else {
+          // if there is no user, create them
+          var newUser = new User();
+
+          console.log('********************************');
+          console.log('twitter profile object:', profile.username);
+          //set all of the user data that we need
+          newUser.twitter.id = profile.id;
+          newUser.twitter.token = token;
+          newUser.twitter.username = profile.username;
+          newUser.twitter.displayName = profile.displayName;
+          console.log('newUser.twitter', newUser.twitter);
+          
+          //save our user into the database
+          newUser.save(function (err) {
+            if (err) {
+              throw err;
+            }
+            return done(null, newUser);
+          });
+        }
+      });
     });
-  });
-}));
-
+  }));
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

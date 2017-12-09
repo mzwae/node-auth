@@ -48,7 +48,7 @@ module.exports = function(app, passport){
   });
   
   
-  /*FACEBOOK ROUTES*/
+  /****FACEBOOK ROUTES****/
   //route for facebook authentication and login
   app.get('/auth/facebook', passport.authenticate('facebook', {
     scope: ['public_profile', 'email']
@@ -60,9 +60,21 @@ module.exports = function(app, passport){
     failureRedirect: '/'
   }));
   
+  /****TWITTER ROUTES****/
+  //route for twitter authentication and login
+  app.get('/auth/twitter', passport.authenticate('twitter'));
   
+  //handle the callback after twitter has authenticated the user
+  app.get('/auth/twitter/callback', passport.authenticate('twitter', {
+    successRedirect: '/profile',
+    failureRedirect: '/'
+  }));
   
-  //Route middleware to make sure a user is logged in
+ 
+};
+
+
+ //Route middleware to make sure a user is logged in
   function isLoggedIn(req, res, next){
     
     //if user is authenticated in the session, carry on
@@ -73,4 +85,3 @@ module.exports = function(app, passport){
     // if they aren't rediret them to the home page
     res.redirect('/');
   }
-};
