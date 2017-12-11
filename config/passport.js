@@ -17,11 +17,13 @@ module.exports = function (passport) {
   //required for persistent login sessions
 
   passport.serializeUser(function (user, done) {
-    done(null, user.id);
+
+    done(null, user._id);
   });
 
   passport.deserializeUser(function (id, done) {
     User.findById(id, function (err, user) {
+
       done(err, user);
     });
   });
@@ -121,7 +123,8 @@ module.exports = function (passport) {
   passport.use(new FacebookStrategy({
       clientID: configAuth.facebookAuth.clientID,
       clientSecret: configAuth.facebookAuth.clientSecret,
-      callbackURL: configAuth.facebookAuth.callbackURL
+      callbackURL: configAuth.facebookAuth.callbackURL,
+      passReqToCallback: true // allows us to pass in the req from our route (lets us check if a user is logged in or not)
     },
     function (req, token, refreshToken, profile, done) {
       //asynchronous
@@ -162,7 +165,6 @@ module.exports = function (passport) {
             }
           });
         } else { //if user already exists and logged in, link accounts
-          console.log(">>>>>>>>>>>>>>>>>>>>Facebook token:", token);
           var user = req.user; //get the user from the session
           //upadate the current users facebook credentials
           user.facebook.id = profile.id;
@@ -186,7 +188,8 @@ module.exports = function (passport) {
   passport.use(new TwitterStrategy({
     consumerKey: configAuth.twitterAuth.consumerKey,
     consumerSecret: configAuth.twitterAuth.consumerSecret,
-    callbackURL: configAuth.twitterAuth.callbackURL
+    callbackURL: configAuth.twitterAuth.callbackURL,
+    passReqToCallback: true
   }, function (req, token, tokenSecret, profile, done) {
     // make the code asynchronous
     //User.findOne won't fire until we have all our data back from Twitter
@@ -224,7 +227,6 @@ module.exports = function (passport) {
           }
         });
       } else { //if user already exists and logged in, link accounts
-        console.log(">>>>>>>>>>>>>>Twitter token:", token);
         var user = req.user; //get the user from the session
         //update the current user's twitter info
         user.twitter.id = profile.id;
@@ -252,7 +254,8 @@ module.exports = function (passport) {
   passport.use(new GoogleStrategy({
     clientID: configAuth.googleAuth.clientID,
     clientSecret: configAuth.googleAuth.clientSecret,
-    callbackURL: configAuth.googleAuth.callbackURL
+    callbackURL: configAuth.googleAuth.callbackURL,
+    passReqToCallback: true
   }, function (req, token, refreshToken, profile, done) {
     //make the code asynchronous
     //User.finOne won't fire until we have all our data back from Google
@@ -292,7 +295,6 @@ module.exports = function (passport) {
           }
         });
       } else { //if user already exists and is logged in, link accounts
-        console.log(">>>>>>>>>>>>>>>>>Google token:", token);
         var user = req.user; //get the user from the session
         user.google.id = profile.id;
         user.google.token = token;

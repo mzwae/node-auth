@@ -1,3 +1,4 @@
+
 module.exports = function (app, passport) {
 
   //Home page
@@ -140,16 +141,23 @@ module.exports = function (app, passport) {
 
   /******************UNLINKING ACCOUNTS ROUTES***************************/
   /*
-  1. For social accounts, remove the related object.
+  1. For social accounts, remove token only in case the user changes their mind.
   2. For local accounts, remove email and password.
   3. User account will stay active in case they want to reconnect in the future.
   */
 
   //local--------------------------------------
   app.get('/unlink/local', function (req, res) {
+    console.log('>>>>>>>>>>>>>>>>>>>req is:', req);
     var user = req.user;
-    user.local = undefined;
-    user.local.save(function (err) {
+        console.log('>>>>>>>>>>>>>>user is:', user);
+
+ /*   user.updateOne({}, {$unset: {local: ""}});
+    
+    db.movieDetails.updateMany({rated: null}, {$unset: {rated: ""}})*/
+     user.local.email = undefined;
+     user.local.password = undefined;
+    user.save(function (err) {
       res.redirect('/profile');
     });
   });
@@ -157,7 +165,7 @@ module.exports = function (app, passport) {
   //facebook-----------------------------------
   app.get('/unlink/facebook', function (req, res) {
     var user = req.user;
-    user.facebook = undefined;
+    user.facebook.token = undefined;
     user.save(function (err) {
       res.redirect('/profile');
     });
@@ -166,7 +174,7 @@ module.exports = function (app, passport) {
   //twitter------------------------------------
   app.get('/unlink/twitter', function (req, res) {
     var user = req.user;
-    user.twitter = undefined;
+    user.twitter.token = undefined;
     user.save(function (err) {
       res.redirect('/profile');
     });
@@ -175,7 +183,7 @@ module.exports = function (app, passport) {
   //google-------------------------------------
   app.get('/unlink/google', function (req, res) {
     var user = req.user;
-    user.google = undefined;
+    user.google.token = undefined;
     user.save(function (err) {
       res.redirect('/profile');
     });
