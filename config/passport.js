@@ -60,7 +60,22 @@ module.exports = function (passport) {
           //Check to see if the user already exists
           if (user) {
             return done(null, false, req.flash('signupMessage', 'SORRY, That email is already used!'));
-          } else {
+          } 
+        
+        //if user is loggedin already, connect account
+        if(req.user){
+           
+          var user = req.user;
+          user.local.email = email;
+          user.local.password = user.generateHash(password);
+          user.save(function(err){
+            if(err){
+              throw err;
+            }
+            return done(null, user);
+          });
+        
+         } else {//user not already loggedin or existing, create a new user
             //if no user with that email, create a new user
             var newUser = new User();
 
@@ -142,6 +157,18 @@ module.exports = function (passport) {
 
             //if the user is found, then log them in
             if (user) {
+              //if there is a user id already but no token i.e. user was linked at one point and then unlinked
+              if(!user.facebook.token){
+                user.facebook.token = token;
+                user.facebook.name = profile.displayName;
+                
+                user.save(function(err){
+                  if(err){
+                    throw err;
+                  }
+                  return done(null, user);
+                });
+              }
               return done(null, user); //user found, return that user
             } else {
               //if no user already signed up, create a new user

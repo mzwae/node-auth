@@ -12,12 +12,23 @@ var morgan = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
+require('./config/passport')(passport);//pass passport for configuration
 
-var configDB = require('./config/database.js');
 
 //configuration------------------
-mongoose.connect(configDB.url);
-require('./config/passport')(passport);//pass passport for configuration
+
+var dbURI = 'mongodb://localhost/node-auth';
+var databaseType = "LOCAL";
+if (process.env.NODE_ENV === 'production') {
+  databaseType = "REMOTE";
+  dbURI = process.env.dbURI;
+}
+
+mongoose.connect(dbURI);
+
+console.log("App server successfully connected to", databaseType, "Database server!");
+
+
 
 
 //set up our express application-------------------
@@ -42,11 +53,11 @@ require('./app/routes.js')(app, passport);//load our routes and pass in our app 
 
 
 //launch-----------------------
-app.listen(port, function(){
-  console.log('node-auth server listening on port ', port);
-});
+//app.listen(port, function(){
+//  console.log('node-auth server listening on port ', port);
+//});
 
-
+module.exports = app;
 
 
 
