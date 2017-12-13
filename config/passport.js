@@ -60,22 +60,22 @@ module.exports = function (passport) {
           //Check to see if the user already exists
           if (user) {
             return done(null, false, req.flash('signupMessage', 'SORRY, That email is already used!'));
-          } 
-        
-        //if user is loggedin already, connect account
-        if(req.user){
-           
-          var user = req.user;
-          user.local.email = email;
-          user.local.password = user.generateHash(password);
-          user.save(function(err){
-            if(err){
-              throw err;
-            }
-            return done(null, user);
-          });
-        
-         } else {//user not already loggedin or existing, create a new user
+          }
+
+          //if user is loggedin already, connect account
+          if (req.user) {
+
+            var user = req.user;
+            user.local.email = email;
+            user.local.password = user.generateHash(password);
+            user.save(function (err) {
+              if (err) {
+                throw err;
+              }
+              return done(null, user);
+            });
+
+          } else { //user not already loggedin or existing, create a new user
             //if no user with that email, create a new user
             var newUser = new User();
 
@@ -158,12 +158,14 @@ module.exports = function (passport) {
             //if the user is found, then log them in
             if (user) {
               //if there is a user id already but no token i.e. user was linked at one point and then unlinked
-              if(!user.facebook.token){
+              if (!user.facebook.token) {
                 user.facebook.token = token;
                 user.facebook.name = profile.displayName;
-                
-                user.save(function(err){
-                  if(err){
+                user.facebook.picture = 'http://graph.facebook.com/' +
+                  profile.id.toString() + '/picture?type=large';
+
+                user.save(function (err) {
+                  if (err) {
                     throw err;
                   }
                   return done(null, user);
@@ -177,6 +179,8 @@ module.exports = function (passport) {
               //set all of the facebook information in our user model
               newUser.facebook.id = profile.id;
               newUser.facebook.token = token;
+              newUser.facebook.picture = 'http://graph.facebook.com/' +
+                profile.id.toString() + '/picture?type=large';
               //        newUser.facebook.name = profile.name.givenName + ' ' + profile.name.familyName;
               newUser.facebook.name = profile.displayName;
               //        newUser.facebook.email = profile.emails[0].value || null;
@@ -197,6 +201,8 @@ module.exports = function (passport) {
           user.facebook.id = profile.id;
           user.facebook.token = token;
           user.facebook.name = profile.displayName;
+          user.facebook.picture = 'http://graph.facebook.com/' +
+            profile.id.toString() + '/picture?type=large';
 
           //save the user
           user.save(function (err) {
@@ -237,12 +243,13 @@ module.exports = function (passport) {
           } else {
             // if there is no user, create them
             var newUser = new User();
-
+console.log(">>>>>>>>>>twitter profile is: ", profile);
             //set all of the user data that we need
             newUser.twitter.id = profile.id;
             newUser.twitter.token = token;
             newUser.twitter.username = profile.username;
             newUser.twitter.displayName = profile.displayName;
+            newUser.twitter.picture = profile.profile_image_url;
 
             //save our user into the database
             newUser.save(function (err) {
@@ -260,6 +267,7 @@ module.exports = function (passport) {
         user.twitter.token = token;
         user.twitter.username = profile.username;
         user.twitter.displayName = profile.displayName;
+        user.twitter.picture = profile.profile_image_url;
 
         //save the user to the database
         user.save(function (err) {
