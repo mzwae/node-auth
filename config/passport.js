@@ -162,7 +162,7 @@ module.exports = function (passport) {
                 user.facebook.token = token;
                 user.facebook.name = profile.displayName;
                 user.facebook.picture = 'http://graph.facebook.com/' +
-                  profile.id.toString() + '/picture?type=large';
+                  profile.id.toString() + '/picture?width=73&height=73';
 
                 user.save(function (err) {
                   if (err) {
@@ -180,7 +180,7 @@ module.exports = function (passport) {
               newUser.facebook.id = profile.id;
               newUser.facebook.token = token;
               newUser.facebook.picture = 'http://graph.facebook.com/' +
-                profile.id.toString() + '/picture?type=large';
+                profile.id.toString() + '/picture?width=73&height=73';
               //        newUser.facebook.name = profile.name.givenName + ' ' + profile.name.familyName;
               newUser.facebook.name = profile.displayName;
               //        newUser.facebook.email = profile.emails[0].value || null;
@@ -202,7 +202,7 @@ module.exports = function (passport) {
           user.facebook.token = token;
           user.facebook.name = profile.displayName;
           user.facebook.picture = 'http://graph.facebook.com/' +
-            profile.id.toString() + '/picture?type=large';
+            profile.id.toString() + '/picture?width=73&height=73';
 
           //save the user
           user.save(function (err) {
@@ -227,6 +227,7 @@ module.exports = function (passport) {
     // make the code asynchronous
     //User.findOne won't fire until we have all our data back from Twitter
     process.nextTick(function () {
+
       //check if user is already logged in
       if (!req.user) {
         User.findOne({
@@ -243,13 +244,12 @@ module.exports = function (passport) {
           } else {
             // if there is no user, create them
             var newUser = new User();
-console.log(">>>>>>>>>>twitter profile is: ", profile);
             //set all of the user data that we need
             newUser.twitter.id = profile.id;
             newUser.twitter.token = token;
             newUser.twitter.username = profile.username;
             newUser.twitter.displayName = profile.displayName;
-            newUser.twitter.picture = profile.profile_image_url;
+            newUser.twitter.picture = profile._json.profile_image_url.replace('_normal', '_bigger');
 
             //save our user into the database
             newUser.save(function (err) {
@@ -263,11 +263,12 @@ console.log(">>>>>>>>>>twitter profile is: ", profile);
       } else { //if user already exists and logged in, link accounts
         var user = req.user; //get the user from the session
         //update the current user's twitter info
+
         user.twitter.id = profile.id;
         user.twitter.token = token;
         user.twitter.username = profile.username;
         user.twitter.displayName = profile.displayName;
-        user.twitter.picture = profile.profile_image_url;
+        user.twitter.picture = profile._json.profile_image_url.replace('_normal', '_bigger');
 
         //save the user to the database
         user.save(function (err) {
@@ -318,6 +319,7 @@ console.log(">>>>>>>>>>twitter profile is: ", profile);
             newUser.google.token = token;
             newUser.google.name = profile.displayName;
             newUser.google.email = profile.emails[0].value; //pull the first email
+            newUser.google.picture = profile._json.image.url.replace('sz=50', 'sz=73');
 
             // save the user to the database
             newUser.save(function (err) {
@@ -335,7 +337,7 @@ console.log(">>>>>>>>>>twitter profile is: ", profile);
         user.google.token = token;
         user.google.name = profile.displayName;
         user.google.email = profile.emails[0].value; //pull the first email
-
+        user.google.picture = profile._json.image.url.replace('sz=50', 'sz=73');
         //save the user
         user.save(function (err) {
           if (err) {
