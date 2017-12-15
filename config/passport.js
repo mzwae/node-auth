@@ -18,7 +18,7 @@ module.exports = function (passport) {
 
   passport.serializeUser(function (user, done) {
 
-    done(null, user._id);
+    done(null, user.id);
   });
 
   passport.deserializeUser(function (id, done) {
@@ -38,33 +38,25 @@ module.exports = function (passport) {
     passwordField: 'password',
     passReqToCallback: true //allows us to pass back the entire request to the callback
   }, function (req, email, password, done) {
-
     //asynchronous
     //User.findOne won't fire unless data is sent back
     process.nextTick(function () {
-
-
       //find a user whose email is the same as the one provided by the user
       //we are checking to see whether the user trying to login exists or not
       User.findOne({
           'local.email': email
         },
         function (err, user) {
-
-
           //if there are any errors , return the error
           if (err) {
             return done(err);
           }
-
           //Check to see if the user already exists
           if (user) {
             return done(null, false, req.flash('signupMessage', 'SORRY, That email is already used!'));
           }
-
           //if user is loggedin already, connect account
           if (req.user) {
-
             var user = req.user;
             user.local.email = email;
             user.local.password = user.generateHash(password);
@@ -76,9 +68,7 @@ module.exports = function (passport) {
             });
 
           } else { //user not already loggedin or existing, create a new user
-            //if no user with that email, create a new user
             var newUser = new User();
-
             //set the new user's local credentials
             newUser.local.email = email;
             newUser.local.password = newUser.generateHash(password);
@@ -95,9 +85,6 @@ module.exports = function (passport) {
         });
     });
   }));
-
-
-
 
   //Local login
   passport.use('local-login', new LocalStrategy({
@@ -240,9 +227,23 @@ module.exports = function (passport) {
 
           // if the user is found then log them in 
           if (user) {
+            //if there's a user id but no token (user unlinked account)
+            if(!user.twitter.token){
+              user.twitter.token = token;
+              user.twitter.username = profile.username;
+              user.twitter.displayName = profile.displayName;
+              user.twitter.picture = profile._json.profile_image_url.replace('_normal', '_bigger');
+
+              user.save(function(err){
+                if(err){
+                  throw err;
+                }
+                return done(null, user);
+              });
+            }
             return done(null, user); //user found, return that user
           } else {
-            // if there is no user, create them
+            // if there is no user, create a new user
             var newUser = new User();
             //set all of the user data that we need
             newUser.twitter.id = profile.id;
@@ -308,7 +309,20 @@ module.exports = function (passport) {
           }
 
           if (user) {
-            //if a user is found, log them in 
+            //if there is a user id but no token (user unlinked account)
+            if(!user.google.token){
+              user.google.token = token;
+              user.google.name = profile.displayName;
+              user.google.email = profile.emails[0].value;
+              user.google.picture = profile._json.image.url.replace('sz=50', 'sz=73');
+              
+              user.save(function(err){
+                if(err){
+                  throw err;
+                }
+                return done(null, user);
+              });
+            }
             return done(null, user);
           } else {
             //if the user isn't in our database, create a new user 
