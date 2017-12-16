@@ -40,7 +40,7 @@ module.exports = function (passport) {
   }, function (req, email, password, done) {
     //asynchronous
     //User.findOne won't fire unless data is sent back
-    process.nextTick(function () {
+//    process.nextTick(function () {
       //find a user whose email is the same as the one provided by the user
       //we are checking to see whether the user trying to login exists or not
       User.findOne({
@@ -83,7 +83,7 @@ module.exports = function (passport) {
 
           }
         });
-    });
+//    }); //next tick
   }));
 
   //Local login
@@ -130,7 +130,7 @@ module.exports = function (passport) {
     },
     function (req, token, refreshToken, profile, done) {
       //asynchronous
-      process.nextTick(function () {
+//      process.nextTick(function () {
         //check if the user is already logged in
         if (!req.user) {
           //find the user in the database based on their id
@@ -199,7 +199,7 @@ module.exports = function (passport) {
             return done(null, user);
           });
         }
-      });
+//      });// next tick
     }));
 
   /************************************************************/
@@ -213,7 +213,7 @@ module.exports = function (passport) {
   }, function (req, token, tokenSecret, profile, done) {
     // make the code asynchronous
     //User.findOne won't fire until we have all our data back from Twitter
-    process.nextTick(function () {
+//    process.nextTick(function () {
 
       //check if user is already logged in
       if (!req.user) {
@@ -280,7 +280,7 @@ module.exports = function (passport) {
         });
 
       }
-    });
+//    });// next tick
   }));
 
 
@@ -296,7 +296,7 @@ module.exports = function (passport) {
   }, function (req, token, refreshToken, profile, done) {
     //make the code asynchronous
     //User.finOne won't fire until we have all our data back from Google
-    process.nextTick(function () {
+//    process.nextTick(function () {
 
       //check if the user is already logged in
       if (!req.user) {
@@ -361,7 +361,7 @@ module.exports = function (passport) {
         });
 
       }
-    });
+//    });// next tick
 
 
   }));

@@ -1,4 +1,3 @@
-
 module.exports = function (app, passport) {
 
   //Home page
@@ -148,15 +147,12 @@ module.exports = function (app, passport) {
 
   //local--------------------------------------
   app.get('/unlink/local', function (req, res) {
-    console.log('>>>>>>>>>>>>>>>>>>>req is:', req);
     var user = req.user;
-        console.log('>>>>>>>>>>>>>>user is:', user);
 
- /*   user.updateOne({}, {$unset: {local: ""}});
-    
-    db.movieDetails.updateMany({rated: null}, {$unset: {rated: ""}})*/
-     user.local.email = undefined;
-     user.local.password = undefined;
+    /*   user.updateOne({}, {$unset: {local: ""}});
+       db.movieDetails.updateMany({rated: null}, {$unset: {rated: ""}})*/
+    user.local.email = undefined;
+    user.local.password = undefined;
     user.save(function (err) {
       res.redirect('/profile');
     });
